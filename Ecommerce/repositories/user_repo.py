@@ -1,16 +1,17 @@
 class UserRepository:
 
-    def __init__(self, users):
-        self.users = users
+    users = {} 
 
-    def create_user(self, email: str, password: str, full_name: str, username: str):
-        if email in self.users:
+    @classmethod
+    def create_user(cls, email: str, password: str, full_name: str, username: str):
+        if email in cls.users:
             raise Exception("User Already Exists")
-        self.users[email] = {"email": str, "password": str, "full_name": str, "username": str} 
+        cls.users[email] = {"email": str, "password": str, "full_name": str, "username": str} 
     
-    def get_usert(self, email: str):
+    @classmethod
+    def get_user(cls, email: str):
         try: 
-            if(self.users.get(email)):
-                return self.users.get(email)
+            if(cls.users.get(email)):
+                return cls.users.get(email)
         except:
             raise Exception("User Not Found")
