@@ -1,9 +1,11 @@
 from pydantic import BaseModel
 from datetime import datetime
+from product import Product
 
 class OrderItem(BaseModel):
     product_id: int
     quantity: int
+    Product.price: int
 
 class Order(BaseModel):
     order_id: int

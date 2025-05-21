@@ -1,7 +1,7 @@
 class cartRepository:
 
     carts = {}
-
+    
     @classmethod
     def add_to_cart(cls, user_id: str, item):
         if user_id not in cls.carts:

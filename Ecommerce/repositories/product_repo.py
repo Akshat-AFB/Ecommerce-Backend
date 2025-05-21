@@ -1,7 +1,7 @@
 class productRepository:
 
     products = []
-    curr_id = 1
+    curr_id = 0
 
     @classmethod
     def create_product(cls, product):
