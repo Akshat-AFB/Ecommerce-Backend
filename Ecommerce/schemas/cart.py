@@ -1,13 +1,17 @@
 from pydantic import BaseModel
 
-class CartItemSchema(BaseModel):
+class CartItem(BaseModel):
     product_id: int
     quantity: int
 
 class AddToCartRequest(BaseModel):
     user_id: str
-    items: list[CartItemSchema]
+    item: CartItem
+
+class RemoveFromCartRequest(BaseModel):
+    user_id: str
+    item: CartItem
 
 class CartResponse(BaseModel):
     user_id: str
-    items: list[CartItemSchema]
+    items: list[CartItem]
