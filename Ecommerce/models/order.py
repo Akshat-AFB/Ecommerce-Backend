@@ -5,7 +5,7 @@ from product import Product
 class OrderItem(BaseModel):
     product_id: int
     quantity: int
-    Product.price: int
+    Product.price
 
 class Order(BaseModel):
     order_id: int

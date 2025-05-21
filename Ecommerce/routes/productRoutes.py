@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, status
 from services.productService import ProductService
 from schemas.product import ProductCreate
 
+
 router = APIRouter()
 
 @router.get("/")
