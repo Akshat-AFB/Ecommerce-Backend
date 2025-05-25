@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'ecommerce',
     'api',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -51,7 +52,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
+CORS_ALLOW_ALL_ORIGINS = True
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -89,8 +92,12 @@ WSGI_APPLICATION = 'ecommerce.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'ecommerce',
+        'USER': 'akshat',         # your DB user (or 'postgres')
+        'PASSWORD': 'password',   # your DB password
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 

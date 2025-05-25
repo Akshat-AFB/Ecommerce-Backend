@@ -34,6 +34,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
     def post(self, request, *args, **kwargs):
+        print(request.data)
         serializer = self.get_serializer(data=request.data)
 
         try:
@@ -116,7 +117,7 @@ class CartListView(APIView):
 
         return Response({
             "items": serializer.data,
-            "cart_total": total
+            "cart_total": round(total, 2)
         }, status=status.HTTP_200_OK)
 
 # Add or update a cart item
@@ -127,7 +128,7 @@ class AddToCartView(APIView):
         user = request.user
         product_id = request.data.get('product')
         quantity = int(request.data.get('quantity', 1))
-
+        # print(f"Adding product {product_id} with quantity {quantity} to cart for user {user.username}")
         try:
             product = Product.objects.get(id=product_id)
         except Product.DoesNotExist:
@@ -199,7 +200,6 @@ class RemoveFromCartView(APIView):
         except CartItem.DoesNotExist:
             return Response({"detail": "Item not found in cart."}, status=status.HTTP_404_NOT_FOUND)
 
-    
 class PlaceOrderView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -216,34 +216,83 @@ class PlaceOrderView(APIView):
         if not cart_items.exists():
             return Response({"detail": "Cart has no items."}, status=status.HTTP_400_BAD_REQUEST)
 
-        orders = []
-
+        # Check stock first
         for item in cart_items:
-            product = item.product
-            if item.quantity > product.stock:
+            if item.quantity > item.product.stock:
                 return Response({
-                    "detail": f"Insufficient stock for {product.name}."
+                    "detail": f"Insufficient stock for {item.product.name}."
                 }, status=status.HTTP_400_BAD_REQUEST)
 
-        # All validations passed, now create orders and deduct stock
+        # Create one Order for all items
+        order = Order.objects.create(
+            user=user,
+            order_date=datetime.now(),
+            order_status="placed"
+        )
+
         for item in cart_items:
             product = item.product
             product.stock -= item.quantity
             product.save()
 
-            order = Order.objects.create(
-                user=user,
+            OrderItem.objects.create(
+                order=order,
                 product=product,
                 quantity=item.quantity,
-                order_date=datetime.now(),
-                order_status="placed"
+                price_at_order_time=product.price
             )
-            orders.append(order)
 
         # Clear the cart
         cart_items.delete()
 
-        return Response({"detail": "Order placed successfully.", "orders": [order.id for order in orders]}, status=201)
+        return Response({
+            "detail": "Order placed successfully.",
+            "order_id": order.id
+        }, status=status.HTTP_201_CREATED)    
+# class PlaceOrderView(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def post(self, request):
+#         user = request.user
+
+#         try:
+#             cart = Cart.objects.get(user=user)
+#         except Cart.DoesNotExist:
+#             return Response({"detail": "Cart is empty."}, status=status.HTTP_400_BAD_REQUEST)
+
+#         cart_items = cart.cart_items.select_related('product')
+
+#         if not cart_items.exists():
+#             return Response({"detail": "Cart has no items."}, status=status.HTTP_400_BAD_REQUEST)
+
+#         orders = []
+
+#         for item in cart_items:
+#             product = item.product
+#             if item.quantity > product.stock:
+#                 return Response({
+#                     "detail": f"Insufficient stock for {product.name}."
+#                 }, status=status.HTTP_400_BAD_REQUEST)
+
+#         # All validations passed, now create orders and deduct stock
+#         for item in cart_items:
+#             product = item.product
+#             product.stock -= item.quantity
+#             product.save()
+
+#             order = Order.objects.create(
+#                 user=user,
+#                 product=product,
+#                 quantity=item.quantity,
+#                 order_date=datetime.now(),
+#                 order_status="placed"
+#             )
+#             orders.append(order)
+
+#         # Clear the cart
+#         cart_items.delete()
+
+#         return Response({"detail": "Order placed successfully.", "orders": [order.id for order in orders]}, status=201)
 
 class CancelOrderView(APIView):
     permission_classes = [permissions.IsAuthenticated]

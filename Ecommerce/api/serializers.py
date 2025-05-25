@@ -16,11 +16,13 @@ class ProductSerializer(serializers.ModelSerializer):
 
 class CartItemSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='product.name', read_only=True)
-
+    product_total = serializers.SerializerMethodField()
     class Meta:
         model = CartItem
-        fields = ['id', 'product', 'product_name', 'quantity']
-
+        fields = ['id', 'product_id', 'product_name', 'quantity', 'product_total']
+    
+    def get_product_total(self, obj):
+        return round(obj.quantity * obj.product.price, 2)
 
 class CartSerializer(serializers.ModelSerializer):
     cart_items = CartItemSerializer(many=True, read_only=True)
@@ -31,8 +33,9 @@ class CartSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'cart_items', 'total']
         read_only_fields = ['user']
 
+
     def get_total(self, obj):
-        return obj.total()
+        return round(sum(item.quantity * item.product.price for item in obj.cart_items.all()), 2)
 
 class OrderItemSerializer(serializers.ModelSerializer):
     product_name = serializers.ReadOnlyField(source='product.name')
@@ -47,3 +50,8 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = ['id', 'user', 'order_status', 'order_date', 'items']
+
+
+    # def get_items(self, obj):
+    #     order_items = OrderItem.objects.filter(order=obj)
+    #     return OrderItemSerializer(order_items, many=True).data
